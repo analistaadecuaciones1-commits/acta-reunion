@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acta de Inspección y Control - Multiplika</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print { 
+            .no-print { display: none; } 
+            body { background-color: white; }
+            .img-preview { width: 140px; height: 140px; object-fit: cover; }
+        }
+        .input-line { border-bottom: 1px solid #94a3b8; padding: 0.25rem; width: 100%; outline: none; }
+        .img-preview { width: 140px; height: 140px; object-fit: cover; border-radius: 4px; display: none; margin: 5px; border: 2px solid #ddd; }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-10 font-sans text-gray-800">
+    <div class="max-w-5xl mx-auto bg-white shadow-xl rounded-lg p-8 border border-gray-200">
+        
+        <header class="flex items-center gap-6 mb-8 border-b-2 border-red-600 pb-4">
+            <div class="bg-red-600 text-white font-bold py-3 px-6 rounded-sm text-xl tracking-wider">MULTIPLIKA</div>
+            <div>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">Control de Adecuaciones</p>
+                <h1 class="text-2xl font-extrabold text-gray-900">ACTA DE INSPECCIÓN Y CONTROL</h1>
+            </div>
+        </header>
+
+        <section class="mb-8">
+            <h2 class="font-bold text-red-600 mb-4 border-b border-red-100 pb-1">● 1. INFORMACIÓN GENERAL</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                <div>
+                    <label class="block font-bold mb-2">Tipo de Registro:</label>
+                    <div class="flex flex-col gap-2">
+                        <label><input type="radio" name="tipo" value="seguimiento"> Seguimiento de Adecuación</label>
+                        <label><input type="radio" name="tipo" value="reunion"> Acta de Reunión</label>
+                    </div>
+                </div>
+                <div><label class="font-bold">Activo / Centro Comercial:</label><input type="text" class="input-line"></div>
+                <div><label class="font-bold">Nomenclatura Local / ZC:</label><input type="text" class="input-line"></div>
+                <div><label class="font-bold">Nombre Comercial / Marca:</label><input type="text" class="input-line"></div>
+                <div><label class="font-bold">Fecha de Registro:</label><input type="date" class="input-line"></div>
+                <div><label class="font-bold">Analista Responsable:</label><input type="text" class="input-line"></div>
+            </div>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="font-bold text-red-600 mb-4 border-b border-red-100 pb-1">● 2. SEGUIMIENTO TÉCNICO</h2>
+            <table class="w-full text-sm border-collapse">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="border p-2 text-left">Especialidad</th>
+                        <th class="border p-2 text-center">Aplica</th>
+                        <th class="border p-2 text-left">Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tech-body"></tbody>
+            </table>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="font-bold text-red-600 mb-4 border-b border-red-100 pb-1">● 3. MATRIZ DE COMPROMISOS</h2>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="font-bold block mb-2">Plazo para Corrección:</label>
+                    <select class="border p-2 w-full rounded"><option>15 Días</option><option>30 Días</option><option>60 Días</option></select>
+                </div>
+                <div>
+                    <label class="font-bold block mb-2">Fecha Límite Máxima:</label>
+                    <input type="date" class="border p-2 w-full rounded">
+                </div>
+            </div>
+            <textarea class="w-full border p-2 h-24 rounded" placeholder="Observaciones Finales..."></textarea>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="font-bold text-red-600 mb-4 border-b border-red-100 pb-1">● 4. REGISTRO FOTOGRÁFICO</h2>
+            <div id="photo-gallery" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            </div>
+            <button onclick="addPhotoField()" class="no-print mt-4 bg-gray-200 px-4 py-2 rounded text-xs font-bold">+ Agregar Foto</button>
+        </section>
+
+        <button onclick="window.print()" class="no-print mt-8 w-full bg-red-600 text-white font-bold py-3 rounded shadow hover:bg-red-700 transition">Generar PDF / Imprimir Acta</button>
+    </div>
+
+    <script>
+        const items = ["CRONOGRAMA", "OBRA CIVIL", "OBRAS PREVIAS", "RED HIDROSANITARIA", "RED ELÉCTRICA (RETIE / Tableros)", "RED DE GAS", "RED RCI & RDI (Gabinetes/Rociadores)", "COMUNICACIONES & AUDIOVISUALES", "EQUIPOS (AA, Climatización, Extracción)", "FACHADA Y CERRAMIENTOS DE OBRA"];
+        const tbody = document.getElementById('tech-body');
+        items.forEach(item => {
+            tbody.innerHTML += `<tr><td class="border p-2 font-semibold">${item}</td><td class="border text-center"><input type="checkbox"></td><td class="border p-2"><input type="text" class="w-full border-b outline-none"></td></tr>`;
+        });
+
+        function addPhotoField() {
+            const id = Date.now();
+            const div = document.createElement('div');
+            div.className = "flex flex-col items-center border p-2";
+            // capture="environment" fuerza la apertura de la cámara trasera en móviles
+            div.innerHTML = `<input type="file" accept="image/*" capture="environment" class="hidden" id="f${id}" onchange="preview(this)">
+                             <label for="f${id}" class="cursor-pointer bg-red-600 text-white px-2 py-1 rounded text-[10px] mb-2 text-center uppercase font-bold">Cámara / Galería</label>
+                             <img class="img-preview" src="#">`;
+            document.getElementById('photo-gallery').appendChild(div);
+        }
+
+        function preview(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = input.parentElement.querySelector('img');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+</body>
+</html>
